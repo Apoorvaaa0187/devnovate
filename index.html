@@ -44,6 +44,28 @@
             border: none;
             border-radius: 10px;
         }
+        /* Event List Styling */
+        .event-list {
+            margin-top: 15px;
+            padding: 10px;
+            background: #2a2a2a;
+            border-radius: 8px;
+        }
+        .event-item {
+            padding: 10px;
+            margin: 10px 0;
+            background: #333;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .event-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .event-date {
+            font-size: 14px;
+            color: #bbb;
+        }
     </style>
 </head>
 <body>
@@ -53,9 +75,9 @@
     </header>
 
     <section id="hackathon-calendar">
-        <h2>📆 Hackathon Calendar</h2>
-        <p>Stay updated with upcoming hackathons.</p>
-        <iframe src="https://calendar.google.com/calendar/embed?src=your-calendar-id&ctz=UTC"></iframe>
+        <h2>📆 Upcoming Hackathons</h2>
+        <p>Stay updated with the latest hackathons happening around you!</p>
+        <div id="events" class="event-list">Loading events...</div>
     </section>
 
     <section id="event-setup">
@@ -84,8 +106,7 @@
         <p>Submit GitHub repos, demo links & participate in multi-stage judging.</p>
         
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSdUat44rXYPQUHvA2pVqhOGRXeoXrL4iEi1W3vjVpE3CNSWYQ/viewform?usp=header">
-          <button>  Submit Project</button></a>
-        
+                <button>Submit Project</button></a>
     </section>
 
     <section id="resume-based">
@@ -93,7 +114,8 @@
         <p>Companies can shortlist participants based on resumes.</p>
         
             <a href="https://docs.google.com/forms/d/e/1FAIpQLSe007laals0vLLVnULmTOkSVOiwyYEbwFE0x9eSvePdHfFMSg/viewform?usp=dialog">
-          <button>  Upload Resume </button></a>
+                <button> Upload Resume</button></a>
+        
     </section>
 
     <section id="recruitment">
@@ -103,11 +125,55 @@
     </section>
 
     <script>
-        document.getElementById("createEvent").addEventListener("click", function() {
-            fetch("https://hook.eu2.make.com/woa5ed4linoaxd7mnl8uf9r47oycznni", { method: "POST" })
-            .then(response => console.log("Webhook Triggered!"))
-            .catch(error => console.error("Error:", error));
-        });
+    async function fetchEvents() {
+        try {
+            const response = await fetch("https://script.google.com/macros/s/AKfycbz6m4NsJaDZhGAybvczFzkGFo961n1zi7tJntX9uJsF--W2fUJh66-KueW8N6dniwgV/exec");  // Replace with your deployed Apps Script URL
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            const events = await response.json();
+            const eventsContainer = document.getElementById("events");
+
+            if (events.length > 0) {
+                eventsContainer.innerHTML = "";  
+                events.forEach(event => {
+                    const eventDiv = document.createElement("div");
+                    eventDiv.classList.add("event-item");
+
+                    const title = document.createElement("div");
+                    title.classList.add("event-title");
+                    title.textContent = event.title;
+
+                    const date = document.createElement("div");
+                    date.classList.add("event-date");
+
+                    if (event.startTime) {
+                        date.textContent = new Date(event.startTime).toLocaleString('en-US', { 
+                            weekday: 'short', 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        });
+                    } else {
+                        date.textContent = "Date not available";
+                    }
+
+                    eventDiv.appendChild(title);
+                    eventDiv.appendChild(date);
+                    eventsContainer.appendChild(eventDiv);
+                });
+            } else {
+                eventsContainer.innerHTML = "<p>No upcoming events found.</p>";
+            }
+        } catch (error) {
+            console.error("Error fetching events:", error);
+            document.getElementById("events").innerHTML = "<p>Error loading events. Try again later.</p>";
+        }
+    }
+
+    fetchEvents();
     </script>
 </body>
 </html>
